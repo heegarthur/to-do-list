@@ -15,7 +15,7 @@
             text-align: center;
             color: #333;
         }
-        input {
+        input, select {
             width: calc(100% - 22px);
             padding: 10px;
             font-size: 16px;
@@ -43,7 +43,6 @@
             margin-top: 20px;
         }
         li {
-            background-color: white;
             padding: 15px;
             border: 1px solid #ccc;
             border-radius: 5px;
@@ -61,29 +60,74 @@
         li button:hover {
             background-color: darkred;
         }
+        li .pin {
+            background-color: gold;
+            color: black;
+            margin-left: 10px;
+        }
+        li input {
+            width: auto;
+            margin-left: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 5px;
+        }
+        .tag {
+            cursor: pointer;
+            color: #007bff;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
     <h1>To-Do Lijst</h1>
     <input id="toDoInput" placeholder="Taak toevoegen...">
+    <input id="tagInput" placeholder="Nieuwe tag toevoegen...">
+    <input type="color" id="colorInput" value="#ffffff">
     <button onclick="addToDo()">Toevoegen</button>
+    <div id="filterTags"></div>
     <ul id="toDoList"></ul>
 
     <script>
-        function renderList() {
+        function renderTags() {
             const list = JSON.parse(localStorage.getItem('toDoItems')) || [];
-            document.getElementById('toDoList').innerHTML = list.map((item, i) => 
-                `<li>${item.item}<button onclick="removeToDo(${i})">Verwijder</button></li>`
+            const tags = [...new Set(list.map(item => item.tag))];
+            document.getElementById('filterTags').innerHTML = tags.map(tag => 
+                `<span class="tag" onclick="filterByTag('${tag}')">${tag}</span>`
+            ).join(', ');
+        }
+
+        function renderList(filteredTag = null) {
+            const list = JSON.parse(localStorage.getItem('toDoItems')) || [];
+            const filteredList = filteredTag ? list.filter(item => item.tag === filteredTag) : list;
+            const pinnedItems = filteredList.filter(item => item.pinned);
+            const normalItems = filteredList.filter(item => !item.pinned);
+            document.getElementById('toDoList').innerHTML = [
+                ...pinnedItems,
+                ...normalItems
+            ].map((item, i) => 
+                `<li style="background-color: ${item.color}">
+                    ${item.item} <span>${item.tag}</span>
+                    <input type="text" placeholder="Tag wijzigen" onblur="updateTag(${i}, this.value)">
+                    <button onclick="pinToDo(${i})" class="pin">${item.pinned ? 'Ontpinnen' : 'Vastzetten'}</button>
+                    <button onclick="removeToDo(${i})">Verwijder</button>
+                </li>`
             ).join('');
+            renderTags();
         }
         
         function addToDo() {
             const input = document.getElementById('toDoInput');
+            const tagInput = document.getElementById('tagInput');
+            const color = document.getElementById('colorInput').value;
             const list = JSON.parse(localStorage.getItem('toDoItems')) || [];
+            const tag = tagInput.value.trim() || 'Geen tag';
             if (input.value.trim()) {
-                list.push({ item: input.value });
+                list.push({ item: input.value, tag: tag, color: color, pinned: false });
                 localStorage.setItem('toDoItems', JSON.stringify(list));
                 input.value = '';
+                tagInput.value = '';
+                document.getElementById('colorInput').value = '#ffffff';
                 renderList();
             }
         }
@@ -95,7 +139,26 @@
             renderList();
         }
 
+        function pinToDo(index) {
+            const list = JSON.parse(localStorage.getItem('toDoItems')) || [];
+            list[index].pinned = !list[index].pinned;
+            localStorage.setItem('toDoItems', JSON.stringify(list));
+            renderList();
+        }
+
+        function updateTag(index, newTag) {
+            const list = JSON.parse(localStorage.getItem('toDoItems')) || [];
+            list[index].tag = newTag || 'Geen tag';
+            localStorage.setItem('toDoItems', JSON.stringify(list));
+            renderList();
+        }
+
+        function filterByTag(tag) {
+            renderList(tag);
+        }
+
         renderList();
     </script>
 </body>
 </html>
+
