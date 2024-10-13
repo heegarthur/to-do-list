@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do Lijst</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            margin-right: 10px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+        li {
+            background-color: white;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        li button {
+            background-color: red;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        li button:hover {
+            background-color: darkred;
+        }
+    </style>
+</head>
+<body>
+    <h1>To-Do Lijst</h1>
+    <input id="toDoInput" placeholder="Taak toevoegen...">
+    <button onclick="addToDo()">Toevoegen</button>
+    <ul id="toDoList"></ul>
+
+    <script>
+        function renderList() {
+            const list = JSON.parse(localStorage.getItem('toDoItems')) || [];
+            document.getElementById('toDoList').innerHTML = list.map((item, i) => 
+                `<li>${item.item}<button onclick="removeToDo(${i})">Verwijder</button></li>`
+            ).join('');
+        }
+        
+        function addToDo() {
+            const input = document.getElementById('toDoInput');
+            const list = JSON.parse(localStorage.getItem('toDoItems')) || [];
+            if (input.value.trim()) {
+                list.push({ item: input.value });
+                localStorage.setItem('toDoItems', JSON.stringify(list));
+                input.value = '';
+                renderList();
+            }
+        }
+
+        function removeToDo(index) {
+            const list = JSON.parse(localStorage.getItem('toDoItems')) || [];
+            list.splice(index, 1);
+            localStorage.setItem('toDoItems', JSON.stringify(list));
+            renderList();
+        }
+
+        renderList();
+    </script>
+</body>
+</html>
