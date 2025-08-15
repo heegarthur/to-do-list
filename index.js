@@ -1,0 +1,69 @@
+function renderTags() {
+            const list = JSON.parse(localStorage.getItem('toDoItems')) || [];
+            const tags = [...new Set(list.map(item => item.tag))];
+            document.getElementById('filterTags').innerHTML = tags.map(tag => 
+                `<span class="tag" onclick="filterByTag('${tag}')">${tag}</span>`
+            ).join(', ');
+        }
+
+        function renderList(filteredTag = null) {
+            const list = JSON.parse(localStorage.getItem('toDoItems')) || [];
+            const filteredList = filteredTag ? list.filter(item => item.tag === filteredTag) : list;
+            const pinnedItems = filteredList.filter(item => item.pinned);
+            const normalItems = filteredList.filter(item => !item.pinned);
+            document.getElementById('toDoList').innerHTML = [
+                ...pinnedItems,
+                ...normalItems
+            ].map((item, i) => 
+                `<li style="background-color: ${item.color}">
+                    ${item.item} <span>${item.tag}</span>
+                    <input type="text" placeholder="Tag wijzigen" onblur="updateTag(${i}, this.value)">
+                    <button onclick="pinToDo(${i})" class="pin">${item.pinned ? 'Ontpinnen' : 'Vastzetten'}</button>
+                    <button onclick="removeToDo(${i})">Verwijder</button>
+                </li>`
+            ).join('');
+            renderTags();
+        }
+        
+        function addToDo() {
+            const input = document.getElementById('toDoInput');
+            const tagInput = document.getElementById('tagInput');
+            const color = document.getElementById('colorInput').value;
+            const list = JSON.parse(localStorage.getItem('toDoItems')) || [];
+            const tag = tagInput.value.trim() || 'Geen tag';
+            if (input.value.trim()) {
+                list.push({ item: input.value, tag: tag, color: color, pinned: false });
+                localStorage.setItem('toDoItems', JSON.stringify(list));
+                input.value = '';
+                tagInput.value = '';
+                document.getElementById('colorInput').value = '#ffffff';
+                renderList();
+            }
+        }
+
+        function removeToDo(index) {
+            const list = JSON.parse(localStorage.getItem('toDoItems')) || [];
+            list.splice(index, 1);
+            localStorage.setItem('toDoItems', JSON.stringify(list));
+            renderList();
+        }
+
+        function pinToDo(index) {
+            const list = JSON.parse(localStorage.getItem('toDoItems')) || [];
+            list[index].pinned = !list[index].pinned;
+            localStorage.setItem('toDoItems', JSON.stringify(list));
+            renderList();
+        }
+
+        function updateTag(index, newTag) {
+            const list = JSON.parse(localStorage.getItem('toDoItems')) || [];
+            list[index].tag = newTag || 'Geen tag';
+            localStorage.setItem('toDoItems', JSON.stringify(list));
+            renderList();
+        }
+
+        function filterByTag(tag) {
+            renderList(tag);
+        }
+
+        renderList();
